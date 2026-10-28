@@ -29,6 +29,7 @@ let swipe = null;
 let copyTimer = 0;
 let toastTimer = 0;
 let commitTimer = 0;
+let checkFrame = 0;
 /** i18n key of the toast on screen ('' once it is gone), so a language switch can translate it. */
 let toastKey = '';
 let copyDone = false;
@@ -156,7 +157,7 @@ function bindOptions() {
 
 function bindPage() {
   ui.checkForm.addEventListener('submit', (event) => event.preventDefault());
-  ui.check.addEventListener('input', renderChecker);
+  ui.check.addEventListener('input', scheduleChecker);
   ui.checkToggle.addEventListener('click', toggleCheckVisibility);
   ui.historyList.addEventListener('click', onHistoryClick);
   ui.clearHistory.addEventListener('click', () => show(app.clearHistory(), false));
@@ -422,7 +423,14 @@ function describeSource({ mode, entropy, passphrase }) {
   return parts.join(' + ');
 }
 
+/** Analyses at most once per frame, so long pastes do not stall typing. */
+function scheduleChecker() {
+  cancelAnimationFrame(checkFrame);
+  checkFrame = requestAnimationFrame(renderChecker);
+}
+
 function renderChecker() {
+  checkFrame = 0;
   const text = ui.check.value;
   ui.checkEmpty.hidden = text !== '';
   ui.checkResult.hidden = text === '';

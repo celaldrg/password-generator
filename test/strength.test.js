@@ -166,4 +166,30 @@ describe('estimateStrength', () => {
     check(generatePassword({ length: 128 }, seededSource(10)) + generatePassword({ length: 128 }, seededSource(11)));
     assert.ok(performance.now() - started < 5000);
   });
+
+  it('does not flag chance 3-4 letter words in random strings', () => {
+    for (const password of ['i$2M1Ce*', '@\\8BOXSn', 'V?I7TTej']) {
+      const { feedback } = check(password);
+      for (const key of ['feedback.word', 'feedback.leet', 'feedback.capitalization', 'feedback.reversed']) {
+        assert.ok(!feedback.includes(key), `${password}: ${key}`);
+      }
+    }
+  });
+
+  it('still flags plain or title-case short words', () => {
+    assert.ok(check('Love!7').feedback.includes('feedback.word'));
+    assert.ok(check('x#box9Q').feedback.includes('feedback.word'));
+  });
+
+  it('flags word warnings in under 2% of random 8-12 character passwords', () => {
+    const source = seededSource(99);
+    let flagged = 0;
+    for (let length = 8; length <= 12; length += 1) {
+      for (let k = 0; k < 200; k += 1) {
+        const { feedback } = check(generatePassword({ length }, source));
+        if (feedback.some((key) => /word|leet|capital|reversed/.test(key))) flagged += 1;
+      }
+    }
+    assert.ok(flagged < 20, `${flagged} of 1000 flagged`);
+  });
 });

@@ -37,6 +37,8 @@ export const FEEDBACK_KEYS = Object.freeze([
 ]);
 
 const MIN_MATCH_LENGTH = 3;
+/** Words this short only count when spelled plainly; leet or mixed case there is mostly chance. */
+const SHORT_WORD_LENGTH = 4;
 const MAX_SEGMENTS = 32;
 const MAX_SEQUENCE_STEP = 5;
 const MIN_YEAR = 1000;
@@ -160,11 +162,26 @@ function dictionaryMatches(chars, folded) {
     for (let j = i + MIN_MATCH_LENGTH; j <= end; j += 1) {
       for (const variant of variantsOf(folded.slice(i, j))) {
         const entry = entries.get(variant.word);
-        if (entry) matches.push(dictionaryMatch(chars.slice(i, j), i, j, entry, variant));
+        if (!entry) continue;
+        const token = chars.slice(i, j);
+        const match = dictionaryMatch(token, i, j, entry, variant);
+        if (!isChanceShortWord(match, token)) matches.push(match);
       }
     }
   }
   return matches;
+}
+
+/**
+ * A 3-4 letter word reached only through leet swaps, reversal or unusual capitals
+ * (m1ce, BOX, jeT) shows up in many truly random strings, so it is not reported.
+ * Plain and title-case short words (box, Love) still count.
+ */
+function isChanceShortWord(match, token) {
+  if (token.length > SHORT_WORD_LENGTH) return false;
+  const titleCase = isUpper(token[0]) && token.slice(1).every((char) => !isUpper(char));
+  const plainCase = token.every((char) => !isUpper(char)) || titleCase;
+  return match.leet || match.reversed || !plainCase;
 }
 
 function variantsOf(token) {
