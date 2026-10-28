@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Password Generator</title>
+  <meta name="description" content="Private password and passphrase generator that runs entirely in your browser: unbiased crypto randomness, an entropy meter, crack-time estimates and a local strength checker. Nothing is sent, and no password is ever stored.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f172a">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Password Generator">
+  <meta property="og:description" content="Private password and passphrase generator with an entropy meter, crack-time estimates and a strength checker. Nothing is sent, and no password is ever stored.">
+  <meta property="og:url" content="https://celaldrg.github.io/password-generator/">
+  <meta property="og:image" content="https://celaldrg.github.io/password-generator/docs/screenshot.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2334d399'/%3E%3Cpath d='M11 14v-3a5 5 0 0 1 10 0v3' fill='none' stroke='%230f172a' stroke-width='2.6' stroke-linecap='round'/%3E%3Crect x='8.5' y='14' width='15' height='11' rx='3' fill='%230f172a'/%3E%3Ccircle cx='16' cy='19.5' r='2' fill='%2334d399'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 32 32" width="36" height="36" aria-hidden="true" focusable="false">
+          <rect width="32" height="32" rx="8" fill="#34d399"/>
+          <path d="M11 14v-3a5 5 0 0 1 10 0v3" fill="none" stroke="#0f172a" stroke-width="2.6" stroke-linecap="round"/>
+          <rect x="8.5" y="14" width="15" height="11" rx="3" fill="#0f172a"/>
+          <circle cx="16" cy="19.5" r="2" fill="#34d399"/>
+        </svg>
+        <div class="brand-text">
+          <h1 data-i18n="app.title">Password Generator</h1>
+          <p class="tagline" data-i18n="app.tagline">Strong passwords and passphrases, made on your device.</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="reset" type="button" data-i18n-title="header.resetHint" title="Restore the default options and clear the history and the checker">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 2.4-5.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 4v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="btn-text" data-i18n="header.reset">Reset</span>
+        </button>
+        <button class="btn btn-ghost btn-lang" id="language" type="button">
+          <span data-i18n="lang.button">TR</span>
+          <span class="sr-only" data-i18n="lang.switch">Switch to Turkish</span>
+        </button>
+      </div>
+    </header>
+
+    <p class="notice">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="notice.privacy">Everything runs in your browser and nothing is sent. Generated values and checked passwords are never saved; only your language and options, including extra characters and the separator, are remembered on this device.</span>
+    </p>
+
+    <main class="layout">
+      <section class="card card-output" id="generator" aria-labelledby="output-label">
+        <h2 class="sr-only" id="output-label" data-i18n="output.password">Generated password</h2>
+        <div class="output-head">
+          <div class="tabs" id="tabs" role="tablist" data-i18n-aria-label="tabs.label" aria-label="What to generate">
+            <button class="tab" id="tab-password" type="button" role="tab" data-mode="password" aria-selected="true" aria-controls="panel-password" data-i18n="tab.password">Password</button>
+            <button class="tab" id="tab-passphrase" type="button" role="tab" data-mode="passphrase" aria-selected="false" aria-controls="panel-passphrase" tabindex="-1" data-i18n="tab.passphrase">Passphrase</button>
+          </div>
+          <span class="demo-badge" id="demo-badge" data-i18n="demo.badge" hidden>Demo: example values</span>
+        </div>
+        <div class="value-row">
+          <div class="value" id="value" translate="no"></div>
+          <p class="value-error" id="value-error" role="alert" hidden></p>
+          <div class="output-actions">
+            <button class="btn" id="regenerate" type="button" data-i18n-title="action.regenerateHint" title="Generate a new one" aria-keyshortcuts="R">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 1 1-2.4-5.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span data-i18n="action.regenerate">New</span>
+            </button>
+            <button class="btn btn-primary" id="copy" type="button" aria-keyshortcuts="C">
+              <svg class="icon icon-copy" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <svg class="icon icon-check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span id="copy-label" data-i18n="action.copy">Copy</span>
+            </button>
+          </div>
+        </div>
+        <div class="output-foot">
+          <p class="pill" id="pill"><span class="dot" aria-hidden="true"></span><span id="pill-label"></span><span class="pill-bits" id="pill-bits"></span></p>
+          <p class="hint hint-keys"><span data-i18n="hint.keys">Shortcuts:</span> <kbd>R</kbd> <span data-i18n="hint.new">new</span> · <kbd>C</kbd> <span data-i18n="hint.copy">copy</span> · <kbd>1</kbd> <kbd>2</kbd> <span data-i18n="hint.tabs">switch tab</span></p>
+          <p class="hint hint-touch" data-i18n="hint.swipe">Tip: swipe the value sideways for a new one.</p>
+        </div>
+      </section>
+
+      <section class="card card-options" aria-labelledby="options-title">
+        <h2 id="options-title" data-i18n="options.title">Options</h2>
+        <div class="panel" id="panel-password" role="tabpanel" aria-labelledby="tab-password">
+          <div class="field">
+            <div class="field-head">
+              <label for="length-range" data-i18n="options.length">Length</label>
+              <input class="input input-number" id="length-number" type="number" inputmode="numeric" min="4" max="128" step="1" value="16" data-i18n-aria-label="options.length" aria-label="Length">
+            </div>
+            <input class="range" id="length-range" type="range" min="4" max="128" step="1" value="16">
+          </div>
+          <fieldset class="field">
+            <legend data-i18n="options.sets">Character sets</legend>
+            <div class="chips">
+              <label class="chip"><input type="checkbox" data-set="lower" checked><span class="chip-text"><span data-i18n="set.lower">Lowercase</span><span class="sample" translate="no">a–z</span></span></label>
+              <label class="chip"><input type="checkbox" data-set="upper" checked><span class="chip-text"><span data-i18n="set.upper">Uppercase</span><span class="sample" translate="no">A–Z</span></span></label>
+              <label class="chip"><input type="checkbox" data-set="digits" checked><span class="chip-text"><span data-i18n="set.digits">Digits</span><span class="sample" translate="no">0–9</span></span></label>
+              <label class="chip"><input type="checkbox" data-set="symbols" checked><span class="chip-text"><span data-i18n="set.symbols">Symbols</span><span class="sample" translate="no">!@#$%^*</span></span></label>
+            </div>
+          </fieldset>
+          <label class="chip chip-wide"><input type="checkbox" id="look-alikes"><span class="chip-text"><span data-i18n="options.lookAlikes">Avoid look-alikes</span><span class="sample" translate="no">I l 1 O 0</span></span></label>
+          <div class="field">
+            <label for="custom" data-i18n="options.custom">Extra characters</label>
+            <input class="input input-mono" id="custom" type="text" maxlength="64" autocomplete="off" autocapitalize="none" spellcheck="false" translate="no" aria-describedby="custom-hint" data-i18n-placeholder="options.customPlaceholder" placeholder="e.g. çğış€">
+            <p class="hint" id="custom-hint" data-i18n="options.customHint">Added to the pool as their own set. Repeats, spaces and characters already in a selected set are skipped.</p>
+          </div>
+        </div>
+        <div class="panel" id="panel-passphrase" role="tabpanel" aria-labelledby="tab-passphrase" hidden>
+          <div class="field">
+            <div class="field-head">
+              <label for="words-range" data-i18n="options.words">Words</label>
+              <input class="input input-number" id="words-number" type="number" inputmode="numeric" min="3" max="12" step="1" value="6" data-i18n-aria-label="options.words" aria-label="Words">
+            </div>
+            <input class="range" id="words-range" type="range" min="3" max="12" step="1" value="6">
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="word-list" data-i18n="options.wordList">Word list</label>
+              <select class="input" id="word-list">
+                <option value="en" data-i18n="wordList.en">English</option>
+                <option value="tr" data-i18n="wordList.tr">Turkish</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="capitalization" data-i18n="options.capitalization">Capitals</label>
+              <select class="input" id="capitalization">
+                <option value="lower" data-i18n="caps.lower">lowercase</option>
+                <option value="capitalize" data-i18n="caps.capitalize">Capitalized</option>
+                <option value="upper" data-i18n="caps.upper">UPPERCASE</option>
+                <option value="random" data-i18n="caps.random">Random</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-pair">
+            <div class="field">
+              <label for="separator" data-i18n="options.separator">Separator</label>
+              <input class="input input-mono" id="separator" type="text" maxlength="3" value="-" autocomplete="off" autocapitalize="none" spellcheck="false" translate="no">
+            </div>
+            <label class="chip chip-field"><input type="checkbox" id="add-number" checked><span data-i18n="options.number">Add a digit</span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card card-meter" id="meter-card" aria-labelledby="meter-title">
+        <div class="card-head">
+          <h2 id="meter-title" data-i18n="meter.title">Strength</h2>
+          <span class="badge" id="meter-label"></span>
+        </div>
+        <p class="bits-line"><span class="bits" id="bits"></span><span class="bits-unit" data-i18n="meter.bitsUnit">bits of entropy</span></p>
+        <div class="meter" id="meter" role="meter" aria-labelledby="meter-title" aria-valuemin="0" aria-valuemax="100"><span class="meter-fill"></span></div>
+        <p class="source" id="entropy-source"></p>
+        <p class="hint" data-i18n="entropy.explain">Entropy counts the possible values in bits: every extra bit doubles the number of guesses an attacker needs.</p>
+        <h3 data-i18n="crack.title">Time to crack</h3>
+        <p class="hint" data-i18n="crack.intro">Average time for an attacker who knows exactly how the value was made, at four guessing speeds:</p>
+        <ul class="crack-list" id="crack-list"></ul>
+      </section>
+
+      <section class="card card-checker" aria-labelledby="checker-title">
+        <h2 id="checker-title" data-i18n="checker.title">Check your own password</h2>
+        <form class="check-row" id="check-form">
+          <input class="input input-mono" id="check" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" translate="no" data-i18n-placeholder="checker.placeholder" placeholder="Type or paste a password" data-i18n-aria-label="checker.label" aria-label="Password to check">
+          <button class="btn btn-ghost" id="check-toggle" type="button" aria-controls="check" aria-pressed="false" data-i18n="checker.show">Show</button>
+        </form>
+        <p class="hint hint-lock">
+          <svg class="icon icon-small" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          <span data-i18n="checker.private">Checked on this device only. It is never sent or saved.</span>
+        </p>
+        <p class="hint check-empty" id="check-empty" data-i18n="feedback.empty">Type a password to check it. It never leaves this page.</p>
+        <div class="check-result" id="check-result" hidden>
+          <div class="card-head">
+            <span class="badge" id="check-label"></span>
+            <span class="check-bits" id="check-bits"></span>
+          </div>
+          <div class="meter" id="check-meter" role="meter" aria-labelledby="checker-title" aria-valuemin="0" aria-valuemax="100"><span class="meter-fill"></span></div>
+          <ul class="feedback" id="feedback"></ul>
+          <ul class="crack-list crack-compact" id="check-crack"></ul>
+        </div>
+      </section>
+
+      <section class="card card-history" aria-labelledby="history-title">
+        <div class="card-head">
+          <h2 id="history-title" data-i18n="history.title">Recent values</h2>
+          <button class="btn btn-ghost btn-small" id="clear-history" type="button" data-i18n="history.clear">Clear</button>
+        </div>
+        <p class="hint" data-i18n="history.note">The last 10, kept only in the memory of this tab. Reloading or closing the page forgets them.</p>
+        <ol class="history-list" id="history-list" translate="no"></ol>
+        <p class="hint" id="history-empty" data-i18n="history.empty" hidden>Nothing here yet.</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a href="https://github.com/celaldrg/password-generator"><span>MIT</span> · <span data-i18n="footer.source">Source on GitHub</span></a>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="sr-only" id="status" role="status" aria-live="polite"></div>
+  <template id="copy-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></template>
+  <noscript><p class="noscript">This app needs JavaScript. · Bu uygulama JavaScript gerektirir.</p></noscript>
+</body>
+</html>

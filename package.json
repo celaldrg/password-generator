@@ -1,0 +1,11 @@
+{
+  "name": "password-generator",
+  "version": "1.0.0",
+  "description": "Private, offline password and passphrase generator with an entropy meter and a strength checker. Nothing is sent, and no password is ever stored.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
